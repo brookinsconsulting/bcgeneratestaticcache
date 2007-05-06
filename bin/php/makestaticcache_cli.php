@@ -48,7 +48,7 @@ $quiet = $options['quiet'];
 
 $script->initialize();
 
-if ( !$subtree || !$max_level )
+if ( ( $subtree===false ) || ( $max_level === false ) )
 {
 	$cli->error( '--subtree and --max-level are required.' );
 	$script->showHelp();
