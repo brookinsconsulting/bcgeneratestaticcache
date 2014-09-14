@@ -88,7 +88,114 @@ class BCGenerateStaticCache extends BCStaticCache
         return substr_count( $url, '/' )+1;
     }
 
-    function generateCache($force = false, $quiet = false, $cli = false, $subtreeUrl = '/', $maxLevel = 0)
+    /**
+     * Generates the static cache from the configured INI settings.
+     *
+     * @param bool $force If true then it will create all static caches even if it is not outdated.
+     * @param bool $quiet If true then the function will not output anything.
+     * @param eZCLI|false $cli The eZCLI object or false if no output can be done.
+     * @param bool $delay
+     */
+    public function generateCache( $force = false, $quiet = false, $cli = false, $subtreeUrl = '/', $maxLevel = 0, $delay = true, $debug = true )
+    {
+        $staticURLArray = array( $subtreeUrl ); //$this->cachedURLArray();
+        $db = eZDB::instance();
+        $configSettingCount = count( $staticURLArray );
+        $currentSetting = 0;
+
+        // $subtree = trim( $subtreeUrl, '/' );
+        $subtreeMessage = $subtreeUrl;
+
+        if ( $subtreeUrl == '/' )
+        {
+            $subtree = '';
+            $subtreeMessage = '/';
+        }
+        else {
+            $subtree = trim( $subtreeUrl, '/' );
+        }
+
+        $subtreeLevel = BCGenerateStaticCache::level( $subtree );
+
+        if ( !$quiet && $cli )
+            $cli->output( 'Using Subtree: ' . $subtreeMessage . '  level: ' . $subtreeLevel );
+
+        // This contains parent elements which must checked to find new urls and put them in $generateList
+        // Each entry contains:
+        // - url - Url of parent
+        // - glob - A glob string to filter direct children based on name
+        // - org_url - The original url which was requested
+        // - parent_id - The element ID of the parent (optional)
+        // The parent_id will be used to quickly fetch the children, if not it will use the url
+        $parentList = array();
+        // A list of urls which must generated, each entry is a string with the url
+        $generateList = array();
+        foreach ( $staticURLArray as $url )
+        {
+            $currentSetting++;
+            if ( strpos( $url, '*') === false )
+            {
+                $generateList[] = $url;
+            }
+            else
+            {
+                $queryURL = ltrim( str_replace( '*', '', $url ), '/' );
+                $dir = dirname( $queryURL );
+                if ( $dir == '.' )
+                    $dir = '';
+                $glob = basename( $queryURL );
+                $parentList[] = array( 'url' => $dir,
+                                       'glob' => $glob,
+                                       'org_url' => $url );
+            }
+        }
+
+        // As long as we have urls to generate or parents to check we loop
+        while ( count( $generateList ) > 0 || count( $parentList ) > 0 )
+        {
+            // First generate single urls
+            foreach ( $generateList as $generateURL )
+            {
+                if ( !$quiet && $cli )
+                    $cli->output( "Caching Url: $generateURL ", false );
+                $this->cacheURL( $generateURL, false, !$force, $delay, $debug );
+                if ( !$quiet and $cli )
+                    $cli->output( "done" );
+            }
+            $generateList = array();
+
+            // Then check for more data
+            $newParentList = array();
+            foreach ( $parentList as $parentURL )
+            {
+                if ( isset( $parentURL['parent_id'] ) )
+                {
+                    $elements = eZURLAliasML::fetchByParentID( $parentURL['parent_id'], true, true, false );
+                    foreach ( $elements as $element )
+                    {
+                        $path = '/' . $element->getPath();
+                        $generateList[] = $path;
+                        $newParentList[] = array( 'parent_id' => $element->attribute( 'id' ) );
+                    }
+                }
+                else
+                {
+                    if ( !$quiet and $cli and $parentURL['glob'] )
+                        $cli->output( "wildcard cache: " . $parentURL['url'] . '/' . $parentURL['glob'] . "*" );
+                    $elements = eZURLAliasML::fetchByPath( $parentURL['url'], $parentURL['glob'] );
+                    foreach ( $elements as $element )
+                    {
+                        $path = '/' . $element->getPath();
+                        $generateList[] = $path;
+                        $newParentList[] = array( 'parent_id' => $element->attribute( 'id' ) );
+                    }
+                }
+            }
+            $parentList = $newParentList;
+        }
+    }
+
+    function generateCacheDeprecated($force = false, $quiet = false, $cli = false, $subtreeUrl = '/', $maxLevel = 0, $debug = true )
     {
         // $subtree = trim( $subtreeUrl, '/' );
         $subtreeMessage = $subtreeUrl;
@@ -105,26 +212,35 @@ class BCGenerateStaticCache extends BCStaticCache
         $subtreeLevel = BCGenerateStaticCache::level( $subtree );
 
         if ( !$quiet && $cli )
-            $cli->output( 'Using Subtree: ' . $subtreeMessage . '  level: '.$subtreeLevel );
+            $cli->output( 'Using Subtree: ' . $subtreeMessage . '  level: ' . $subtreeLevel );
 
         $pageArray = array();
 
+        if ( !$quiet && $cli && $debug )
+            $cli->output( 'Input Level: ' . $maxLevel . '  Detected Level: ' . $subtreeLevel );
+
         if ( $subtreeLevel == $maxLevel )
         {
+            if ( !$quiet && $cli )
+                $cli->output( 'Caching: ' . $subtreeUrl . '  level: '.$subtreeLevel );
+
             // only the page indicated by $subtree
             $this->cacheUrlSubtree( $subtreeUrl, !$force );
-            if ( !$quiet && $cli )
-                $cli->output( '  Caching: ' . $subtreeUrl );
         }
         elseif ( $maxLevel > $subtreeLevel )
         {
             // a real subtree
             $db = eZDB::instance();
             $queryLike = $db->escapeString( $subtree . '%' );
-            $aliasArray = $db->arrayQuery( "SELECT source_url FROM ezurlalias
+
+            $aliasQuery = "SELECT source_url FROM ezurlalias
                                                     WHERE source_url LIKE '$queryLike'
-                                                        AND source_url NOT LIKE '%*'
-                                                    ORDER BY source_url" );
+                                                          AND source_url NOT LIKE '%*'
+                                                    ORDER BY source_url";
+        if ( !$quiet && $cli && $debug )
+            $cli->output( "Alias Query: $aliasQuery" );
+
+            $aliasArray = $db->arrayQuery( $aliasQuery );
             $urlCount = count( $aliasArray );
             $currentURL = 0;
 
@@ -150,6 +266,48 @@ class BCGenerateStaticCache extends BCStaticCache
             return ;
         }
 
+    }
+
+    /**
+     * Generates the caches for the url $url using the currently configured storageDirectory().
+     *
+     * @param string $url The URL to cache, e.g /news
+     * @param int|false $nodeID The ID of the node to cache, if supplied it will also cache content/view/full/xxx.
+     * @param bool $skipExisting If true it will not unlink existing cache files.
+     * @return bool
+     */
+    public function cacheURL( $url, $nodeID = false, $skipExisting = false, $delay = true, $debug = false )
+    {
+        // Check if URL should be cached
+        if ( substr_count( $url, "/") >= $this->maxCacheDepth )
+            return false;
+
+        $doCacheURL = false;
+        foreach ( $this->cachedURLArray as $cacheURL )
+        {
+            if ( $url == $cacheURL )
+            {
+                $doCacheURL = true;
+                break;
+            }
+            else if ( strpos( $cacheURL, '*') !== false )
+            {
+                if ( strpos( $url, str_replace( '*', '', $cacheURL ) ) === 0 )
+                {
+                    $doCacheURL = true;
+                    break;
+                }
+            }
+        }
+
+        if ( $doCacheURL == false )
+        {
+            return false;
+        }
+
+        $this->storeCache( $url, $this->staticStorageDir, $nodeID ? array( "/content/view/full/$nodeID" ) : array(), $skipExisting, $delay, $debug );
+
+        return true;
     }
 
     function cacheUrlSubtree($url, $skipUnlink)
@@ -284,7 +442,7 @@ class BCGenerateStaticCache extends BCStaticCache
      * @param bool $skipUnlink If true it will not unlink existing cache files.
      * @param bool $delay
      */
-    private function storeCache( $url, $staticStorageDir, $alternativeStaticLocations = array(), $skipUnlink = false, $delay = false )
+    private function storeCache( $url, $staticStorageDir, $alternativeStaticLocations = array(), $skipUnlink = false, $delay = false, $debug = false )
     {
         $dirs = array();
 
@@ -316,6 +474,16 @@ class BCGenerateStaticCache extends BCStaticCache
                 $content = false;
                 foreach ( $cacheFiles as $file )
                 {
+                    if ( $debug && file_exists( $file ) )
+                    {
+                        print_r( "\nNote: Static cache already exists in file system @ $file\n" );
+                    }
+
+                    if ( $debug && !$skipUnlink )
+                    {
+                        print_r( "Using force to regenerate static cache\n" );
+                    }
+
                     if ( !$skipUnlink || !file_exists( $file ) )
                     {
                         // Deprecated since 4.4, will be removed in future version
@@ -335,11 +503,16 @@ class BCGenerateStaticCache extends BCStaticCache
                         }
                         else
                         {
+                            if ( $debug && $fileName )
+                            {
+                                print_r( "\nNote: Url call to fetch static cache content: $fileName\n" );
+                            }
+
                             // Generate content, if required
                             if ( $content === false )
                             {
-                                if ( eZHTTPTool::getDataByURL( $fileName, true, eZecosystemStaticCache::USER_AGENT ) )
-                                    $content = eZHTTPTool::getDataByURL( $fileName, false, eZecosystemStaticCache::USER_AGENT );
+                                if ( eZHTTPTool::getDataByURL( $fileName, true, BCGenerateStaticCache::USER_AGENT ) )
+                                    $content = eZHTTPTool::getDataByURL( $fileName, false, BCGenerateStaticCache::USER_AGENT );
 
                             // print_r( $content );
 
@@ -350,7 +523,11 @@ class BCGenerateStaticCache extends BCStaticCache
                             }
                             else
                             {
-                                // print_r( $file );
+                                if ( $debug && $file )
+                                {
+                                    print_r( "Storing static cache file: $file \n");
+                                }
+
                                 self::storeCachedFile( $file, $content );
                             }
                         }

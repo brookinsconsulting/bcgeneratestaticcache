@@ -31,12 +31,17 @@ USAGE
 Subtree
 -------
 
-php ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --subtree=/Mirror --max-level=1 --force -s ezwebin_site_user;
+php ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --subtree=/Mirror* --force -s ezwebin_site_user;
 
 HomePage
 --------
 
-php ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --subtree=/ --max-level=0 --force -s ezwebin_site_user;
+php ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --subtree=/ --force -s ezwebin_site_user;
+
+Entire Content Tree
+-------------------
+
+php ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --subtree=/* --force -s ezwebin_site_user;
 
 
 CREDITS
