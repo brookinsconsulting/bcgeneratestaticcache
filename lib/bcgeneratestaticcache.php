@@ -88,18 +88,18 @@ class BCGenerateStaticCache extends BCStaticCache
         return substr_count( $url, '/' )+1;
     }
 
-    function generateCache($force = false, $quiet = false, $cli = false, $subtree = '/', $maxLevel = 0)
+    function generateCache($force = false, $quiet = false, $cli = false, $subtreeUrl = '/', $maxLevel = 0)
     {
-        // $subtree = trim( $subtree, '/' );
-        $subtreeMessage = $subtree;
+        // $subtree = trim( $subtreeUrl, '/' );
+        $subtreeMessage = $subtreeUrl;
 
-        if ( $subtree == '/' )
+        if ( $subtreeUrl == '/' )
         {
             $subtree = '';
             $subtreeMessage = '/';
         }
         else {
-            $subtree = trim( $subtree, '/' );
+            $subtree = trim( $subtreeUrl, '/' );
         }
 
         $subtreeLevel = BCGenerateStaticCache::level( $subtree );
@@ -112,9 +112,9 @@ class BCGenerateStaticCache extends BCStaticCache
         if ( $subtreeLevel == $maxLevel )
         {
             // only the page indicated by $subtree
-            $this->cacheUrlSubtree( $subtree, !$force );
+            $this->cacheUrlSubtree( $subtreeUrl, !$force );
             if ( !$quiet && $cli )
-                $cli->output( '  Caching: ' . $subtree );
+                $cli->output( '  Caching: ' . $subtreeUrl );
         }
         elseif ( $maxLevel > $subtreeLevel )
         {
@@ -127,6 +127,9 @@ class BCGenerateStaticCache extends BCStaticCache
                                                     ORDER BY source_url" );
             $urlCount = count( $aliasArray );
             $currentURL = 0;
+
+            // print_r( $aliasArray ); echo "\n\n";
+
             foreach( $aliasArray as $aliasInfo )
             {
                 $currentURL++;
