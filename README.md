@@ -3,9 +3,9 @@ BC Generate Static Cache
 
 bcgeneratestaticcache is a command line script that provides a command line script to use to generate static cache using command line options
 
-- Project: http://projects.ez.no/bcgeneratemakestaticcache
+- Project: http://projects.ez.no/bcgeneratestaticcache
 
-- Source code: http://github.com/bcgeneratemakestaticcache
+- Source code: http://github.com/bcgeneratestaticcache
 
 
 REQUIREMENTS
