@@ -25,7 +25,7 @@ fi
 if [[ -z "$3" ]]; then
 # Refresh indexes only
 subtree="";
-children=" --children";
+children=" --children ";
 echo "Caching indexes only";
 echo "";
 else
