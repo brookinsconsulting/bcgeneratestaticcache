@@ -59,13 +59,14 @@ $generateStaticCache = new BCGenerateStaticCache();
 if ( $children === true )
 {
     // Fetch child node objects
-    $contentTreeNode = eZURLAliasML::fetchByPath( $subtree ); // eZContentObjectTreeNode::fetchByURLPath( $subtree );
-    $contentTreeNodeID = eZURLAliasML::nodeIDFromAction( $contentTreeNode[0]->Action );
+    $contentTreeNodeURLAliasML = eZURLAliasML::fetchByPath( $subtree );
+    $contentTreeNodeID = eZURLAliasML::nodeIDFromAction( $contentTreeNodeURLAliasML[0]->Action );
+    $contentTreeNode = eZContentObjectTreeNode::fetch( $contentTreeNodeID );
     $contentTreeNodeParams = array( 'SortBy'=> array( 'name', false ), 'Depth' => 1 );
-    $contentTreeNodeChildren = eZContentObjectTreeNode::subTreeByNodeID( $contentTreeNodeParams, $contentTreeNodeID );
+    $contentTreeNodeList = array_merge( array( $contentTreeNode ), eZContentObjectTreeNode::subTreeByNodeID( $contentTreeNodeParams, $contentTreeNodeID ) );
 
     // Iterate over child nodes and generate static cache for each
-    foreach( $contentTreeNodeChildren as $child )
+    foreach( $contentTreeNodeList as $child )
     {
         $generateStaticCache->generateCache( $force, $quiet, $cli, '/'. $child->attribute('url_alias'), $max_level, $delay, $debug );
     }
