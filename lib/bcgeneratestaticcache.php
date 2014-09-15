@@ -108,7 +108,7 @@ class BCGenerateStaticCache extends BCStaticCache
 
         $subtreeLevel = BCGenerateStaticCache::level( $subtree );
 
-        if ( !$quiet && $cli )
+        if ( !$quiet && $cli && $debug )
             $cli->output( 'Using Subtree: ' . $subtreeMessage . '  level: ' . $subtreeLevel );
 
         // This contains parent elements which must checked to find new urls and put them in $generateList
