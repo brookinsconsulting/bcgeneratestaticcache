@@ -62,7 +62,7 @@ if ( $children === true )
     $contentTreeNodeURLAliasML = eZURLAliasML::fetchByPath( $subtree );
     $contentTreeNodeID = eZURLAliasML::nodeIDFromAction( $contentTreeNodeURLAliasML[0]->Action );
     $contentTreeNode = eZContentObjectTreeNode::fetch( $contentTreeNodeID );
-    $contentTreeNodeParams = array( 'SortBy'=> array( 'name', false ), 'Depth' => 1 );
+    $contentTreeNodeParams = array( 'SortBy'=> array( 'name', true ), 'Depth' => 1 );
     $contentTreeNodeList = array_merge( array( $contentTreeNode ), eZContentObjectTreeNode::subTreeByNodeID( $contentTreeNodeParams, $contentTreeNodeID ) );
 
     // Iterate over child nodes and generate static cache for each
