@@ -34,7 +34,7 @@ $options = $script->getOptions( "[q|quiet][f|force][subtree:][max-level:][c|chil
                                        'delay'	=> "Delay actual fetching of static cache content only store requests for cronjob to process" ) );
 
 $subtree = $options['subtree'];
-$max_level = $options['max-level'];
+$maxLevel = $options['max-level'];
 $quiet = $options['quiet'];
 $force = $options['force'];
 $children = $options['children'];
@@ -45,7 +45,7 @@ $debug = $options['debug'];
 $script->initialize();
 
 // Test script options for required option values
-if ( ( $subtree === false ) || ( $max_level === false ) )
+if ( ( $subtree === false ) || ( $maxLevel === false ) )
 {
     $cli->error( '--subtree and --max-level are required.' );
     $script->showHelp();
@@ -55,6 +55,17 @@ if ( ( $subtree === false ) || ( $max_level === false ) )
 // Generate static cache based on script options
 $generateStaticCache = new BCGenerateStaticCache();
 
+$subtreeLevel = substr_count( $subtree, '/' );
+
+if ( $children === true && ($maxLevel - $subtreeLevel) <= 0 )
+{
+    $maxSubtreeLevel = 1;
+}
+else
+{
+    $maxSubtreeLevel = $maxLevel - $subtreeLevel;
+}
+
 // Test for script option children
 if ( $children === true )
 {
@@ -62,19 +73,19 @@ if ( $children === true )
     $contentTreeNodeURLAliasML = eZURLAliasML::fetchByPath( $subtree );
     $contentTreeNodeID = eZURLAliasML::nodeIDFromAction( $contentTreeNodeURLAliasML[0]->Action );
     $contentTreeNode = eZContentObjectTreeNode::fetch( $contentTreeNodeID );
-    $contentTreeNodeParams = array( 'SortBy'=> array( 'name', true ), 'Depth' => 1 );
+    $contentTreeNodeParams = array( 'SortBy'=> array( 'name', true ), 'Depth' => $maxSubtreeLevel );
     $contentTreeNodeList = array_merge( array( $contentTreeNode ), eZContentObjectTreeNode::subTreeByNodeID( $contentTreeNodeParams, $contentTreeNodeID ) );
 
     // Iterate over child nodes and generate static cache for each
     foreach( $contentTreeNodeList as $child )
     {
-        $generateStaticCache->generateCache( $force, $quiet, $cli, '/'. $child->attribute('url_alias'), $max_level, $delay, $debug );
+        $generateStaticCache->generateCache( $force, $quiet, $cli, '/'. $child->attribute('url_alias'), $maxLevel, $delay, $debug );
     }
 }
 else
 {
     // Generate static cache for subtree
-    $generateStaticCache->generateCache( $force, $quiet, $cli, $subtree, $max_level, $delay, $debug );
+    $generateStaticCache->generateCache( $force, $quiet, $cli, $subtree, $maxLevel, $delay, $debug );
 }
 
 // Shut down script
