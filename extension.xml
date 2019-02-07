@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<software>
+    <metadata>
+        <name>BC Generate Static Cache</name>
+        <version>0.1.0</version>
+        <copyright>Copyright (C) 1999 - 2019 Brookins Consulting. All rights reserved.</copyright>
+        <license>GNU General Public License</license>
+        <info_url>https://github.com/brookinsconsulting/bcgeneratestaticcache</info_url>
+        <package_url>https://packagist.org/packages/brookinsconsulting/bcgeneratestaticcache</package_url>
+    </metadata>
+</software>
