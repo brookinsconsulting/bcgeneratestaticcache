@@ -10,7 +10,7 @@
 
 class bcgeneratestaticcacheInfo
 {
-    function info()
+    public static function info()
     {
         return array( 'Name' => "<a href='http://projects.ez.no/bcgeneratestaticcache'>BC Generate Static Cache</a>",
                       'Version' => "0.5.0",
