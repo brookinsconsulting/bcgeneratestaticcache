@@ -89,6 +89,7 @@ class BCGenerateStaticCache extends BCStaticCache
      */
     public function generateCache( $force = false, $quiet = false, $cli = false, $subtreeUrl = '/', $maxLevel = 0, $delay = true, $debug = true )
     {
+        $quiet = false;
         $staticURLArray = array( $subtreeUrl ); //$this->cachedURLArray();
         $db = eZDB::instance();
         $configSettingCount = count( $staticURLArray );
@@ -109,8 +110,11 @@ class BCGenerateStaticCache extends BCStaticCache
         $subtreeLevel = BCGenerateStaticCache::level( $subtree );
 
         if ( !$quiet && $cli && $debug )
+	{
+	    // print_r($cli);
             $cli->output( 'Using Subtree: ' . $subtreeMessage . '  level: ' . $subtreeLevel );
-
+	    //die('here44444');
+	}
         // This contains parent elements which must checked to find new urls and put them in $generateList
         // Each entry contains:
         // - url - Url of parent
@@ -166,6 +170,8 @@ class BCGenerateStaticCache extends BCStaticCache
                     {
                         $path = '/' . $element->getPath();
                         $generateList[] = $path;
+			$searchIdItem = $this->searchForId( $element->attribute( 'id' ), $parentList );
+			if ( $searachIdItem == null )
                         $newParentList[] = array( 'parent_id' => $element->attribute( 'id' ) );
                     }
                 }
@@ -178,13 +184,25 @@ class BCGenerateStaticCache extends BCStaticCache
                     {
                         $path = '/' . $element->getPath();
                         $generateList[] = $path;
+			$searchIdItem = $this->searchForId( $element->attribute( 'id' ), $parentList );
+			if ( $searachIdItem == null )
                         $newParentList[] = array( 'parent_id' => $element->attribute( 'id' ) );
                     }
                 }
             }
             $parentList = $newParentList;
+//	    print_r($parentList);
         }
     }
+
+function searchForId($id, $array) {
+   foreach ($array as $key => $val) {
+       if ($val['uid'] === $id) {
+           return $key;
+       }
+   }
+   return null;
+}
 
     function generateCacheDeprecated($force = false, $quiet = false, $cli = false, $subtreeUrl = '/', $maxLevel = 0, $debug = true )
     {
@@ -295,7 +313,7 @@ class BCGenerateStaticCache extends BCStaticCache
         {
             return false;
         }
-
+//print_r($this->staticStorageDir);
         $this->storeCache( $url, $this->staticStorageDir, $nodeID ? array( "/content/view/full/$nodeID" ) : array(), $skipExisting, $delay, $debug );
 
         return true;

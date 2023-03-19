@@ -1,4 +1,4 @@
-﻿Copyright © 1999 - 2019, Brookins Consulting (United States of America). All rights reserved.
+﻿Copyright © 1999 - 2023, Brookins Consulting (United States of America). All rights reserved.
 
     This file is part of BC Generate Static Cache.
 

@@ -1,5 +1,4 @@
-﻿Copyright © 1999 - 2014, Brookins Consulting (United States of America). All rights reserved.
-Copyright © 2007, Damien POBEL. All rights reserved.
+﻿Copyright © 1999 - 2023, Brookins Consulting (United States of America). All rights reserved.
 
     This file is part of BCGenerateStaticCache.
 

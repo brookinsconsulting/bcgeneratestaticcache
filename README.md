@@ -3,17 +3,15 @@ BC Generate Static Cache
 
 bcgeneratestaticcache is a command line script that provides a command line script to use to generate static cache using command line options
 
-- Project: http://projects.ez.no/bcgeneratestaticcache
-
-- Source code: http://github.com/bcgeneratestaticcache
+- Git Repository and Source code: http://github.com/brookinsconsulting/bcgeneratestaticcache
 
 
 Requirements
 ============
 
-This extension is now compatible and tested with eZ Publish 5.x+ (Legacy) and PHP 5.4
+This extension is now compatible and tested with eZ Publish 5.x+ (Legacy) and PHP 8.2.3
 
-Tested with eZ Publish Community Project 2014.07 and 2013.05
+Tested with eZ Publish Community Project 2014.07 and 2013.05 and 2019.11
 
 Autoloads
 ---------
@@ -34,9 +32,11 @@ The complete extension usage documentation is included in the file doc/USAGE.
 CREDITS
 =======
 
-This solution was based on the makestaticcache_cli extension by Damien Pobel
+This solution was originally based on the makestaticcache_cli extension by Damien Pobel
 
 This solution was compatible with eZ Publish 4.x (See GitHub repository's 4.x branch for older version)
+
+This solution was largely gutted by Brookins Consulting to replace old code with proven code to generate static cache node content to disk from bcimagealias which had largly proven a greater success at the time of writting. 
 
 
 Troubleshooting

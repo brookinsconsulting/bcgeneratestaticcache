@@ -15,7 +15,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.0.0",
+        "php": ">=7.0.0",
         "ezsystems/ezpublish-legacy-installer": "*"
     },
     "extra": {
