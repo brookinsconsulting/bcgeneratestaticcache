@@ -2,7 +2,7 @@
 
 [BCGenerateStaticCacheSettings]
 # Content subtree NodeID to include in static cache content
-StaticCacheRootNodeID=2
+# StaticCacheRootNodeID=2
 # Sitemap link default protocol
 Protocol=https
 # Sitemap output directory path. Path to save sitemap into.
