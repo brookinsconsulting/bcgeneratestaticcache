@@ -10,7 +10,7 @@ rm -rf var/cache/* var/site/cache/*;
 
 # Generate all static cache (forces updates to existing static files; Required but more than needed)
 
-php -d memory_limit=-1 ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --force --debug=TRUE --quiet=FALSE$@;
+php -d memory_limit=-1 ./extension/bcgeneratestaticcache/bin/php/bcgeneratestaticcache.php --siteaccess=site --force --debug=TRUE --quiet=FALSE$@;
 
 # Return and exit
 

@@ -113,7 +113,6 @@ class BCGenerateStaticCache extends BCStaticCache
 	{
 	    // print_r($cli);
             $cli->output( 'Using Subtree: ' . $subtreeMessage . '  level: ' . $subtreeLevel );
-	    //die('here44444');
 	}
         // This contains parent elements which must checked to find new urls and put them in $generateList
         // Each entry contains:
@@ -313,7 +312,7 @@ function searchForId($id, $array) {
         {
             return false;
         }
-//print_r($this->staticStorageDir);
+        //print_r($this->staticStorageDir);
         $this->storeCache( $url, $this->staticStorageDir, $nodeID ? array( "/content/view/full/$nodeID" ) : array(), $skipExisting, $delay, $debug );
 
         return true;
@@ -460,7 +459,8 @@ function searchForId($id, $array) {
             $dirs[] = $this->buildCacheDirPath( $cachedSiteAccess );
         }
 
-        // print_r( $dirs );
+//        print_r($this->cachedSiteAccesses);
+//        print_r( $dirs );
 
         foreach ( $dirs as $dirParts )
         {

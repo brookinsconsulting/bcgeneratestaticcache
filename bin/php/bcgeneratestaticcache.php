@@ -23,34 +23,31 @@ $script = eZScript::instance( array( 'description' => ( "Subtree Static Cache Ge
 $script->startup();
 
 // Script options
-$options = $script->getOptions( "[q|quiet][f|force][subtree:][max-level:][c|children][d|debug][delay]",
+$options = $script->getOptions( "[q|quiet][f|force][d|debug][delay]",
                                 "",
-                                array( 'subtree' => "Subtree to use to generate static cache",
-                                       'max-level' => "Maximum URL level to go",
-                                       'quiet'	=> "Don't write anything",
-                                       'force'	=> "Generate cache even if a cache file exists",
-                                       'children' => "Generate cache for child objects of url",
-                                       'debug'	=> "Display addition script execution debug output",
-                                       'delay'	=> "Delay actual fetching of static cache content only store requests for cronjob to process" ) );
+                                array( 'quiet' => "Don't write anything to screen",
+                                       'force' => "Generate cache even if a cache file exists",
+                                       'debug' => "Display addition script execution debug output",
+                                       'delay' => "Delay actual fetching of static cache content only store requests for cronjob to process" ) );
 
-$subtree = $options['subtree'];
-$maxLevel = $options['max-level'];
-$quiet = false; //$options['quiet'];
+$quiet = $options['quiet'];
 $force = $options['force'];
-$children = $options['children'];
 $delay = $options['delay'];
 $debug = $options['debug'];
+$siteAccess = $options['siteaccess'];
+$maxLevel = 4; //$options['max-level'];
 
 // Initialize script
 $script->initialize();
 
 // Test script options for required option values
+/*
 if ( ( $subtree === false ) || ( $maxLevel === false ) )
 {
     $cli->error( '--subtree and --max-level are required.' );
     $script->showHelp();
     $script->shutdown( 1 );
-}
+} */
 
 /**
  * File contains an eZ Publish cli script to automatically
@@ -78,28 +75,25 @@ if (!function_exists('str_contains')) {
 // Generate static cache based on script options
 $generateStaticCache = new BCGenerateStaticCache();
 
-$subtreeLevel = substr_count( $subtree, '/' );
-
-if ( $children === true && ($maxLevel - $subtreeLevel) <= 0 )
-{
-    $maxSubtreeLevel = 1;
-}
-else
-{
-    $maxSubtreeLevel = $maxLevel - $subtreeLevel;
-}
+/**
+ * Change siteaccess
+ */
+   eZSiteAccess::change( array("name" => $siteAccess, "type" => eZSiteAccess::TYPE_URI ) );
 
 /**
  * Get a reference to eZINI. append.php will be added automatically.
  */
 $ini = eZINI::instance( 'site.ini' );
-$bcgeneratestaticcacheINI = eZINI::instance( 'bcgeneratestaticcache.ini' );
+// $ini = eZINI::instance( 'site.ini.append.php', 'settings/siteaccess/' . $siteAccess  );
+
+// Rejected in testing as using global vs siteaccess settings.
+// $bcgeneratestaticcacheINI = eZINI::instance( 'bcgeneratestaticcache.ini' );
+$bcgeneratestaticcacheINI = eZINI::instance( 'bcgeneratestaticcache.ini.append.php', 'settings/siteaccess/' . $siteAccess  );
 
 /**
  * BC: Testing for settings required by the script and defining other variables required by the script
  */
 if ( $bcgeneratestaticcacheINI->hasVariable( 'BCGenerateStaticCacheSettings', 'StaticCacheRootNodeID' ) &&
-     $bcgeneratestaticcacheINI->hasVariable( 'BCGenerateStaticCacheSettings', 'Path' ) &&
      $bcgeneratestaticcacheINI->hasVariable( 'BCGenerateStaticCacheSettings', 'Protocol' ) &&
      $bcgeneratestaticcacheINI->hasVariable( 'Classes', 'ClassFilterType' ) &&
      $bcgeneratestaticcacheINI->hasVariable( 'Classes', 'ClassFilterArray' ) &&
@@ -111,24 +105,6 @@ if ( $bcgeneratestaticcacheINI->hasVariable( 'BCGenerateStaticCacheSettings', 'S
      * BC: Define root content tree node ID
      */
     $staticCacheRootNodeID = $bcgeneratestaticcacheINI->variable( 'BCGenerateStaticCacheSettings', 'StaticCacheRootNodeID' );
-
-    /**
-     * BC: Define the sitemap basename and output file suffix
-     */
-    //$sitemapName = $bcgeneratestaticcacheINI->variable( 'BCGenerateStaticCacheSettings', 'Filename' );
-    //$sitemapSuffix = $bcgeneratestaticcacheINI->variable( 'BCGenerateStaticCacheSettings', 'Filesuffix' );
-
-    /**
-     * BC: Define the sitemap base path, output file directory path. Path to directory to write out generated sitemaps
-     */
-    if( $bcgeneratestaticcacheINI->variable( 'BCGenerateStaticCacheSettings', 'Path' ) != false )
-    {
-        $sitemapPath = $bcgeneratestaticcacheINI->variable( 'BCGenerateStaticCacheSettings', 'Path' );
-    }
-    else
-    {
-        $sitemapPath = $ini->variable( 'FileSettings', 'VarDir' );
-    }
 
     /**
      * BC: Define the sitemap link protocol. Default http
@@ -144,7 +120,8 @@ if ( $bcgeneratestaticcacheINI->hasVariable( 'BCGenerateStaticCacheSettings', 'S
     /**
      * BC: Define content tree node iteration node_id exclusion filter. Array of node_ids to exclude.
      */
-    $excludeNodeIDs = $bcgeneratestaticcacheINI->variable( 'NodeSettings', 'ExcludedNodeIDs' );
+    $excludeNodeIDs = $bcgeneratestaticcacheINI->variable( 'BCGenerateStaticCacheSettings', 'ExcludedNodeIDs' );
+    // var_dump($excludeNodeIDs);die();
 }
 else
 {
@@ -168,6 +145,7 @@ else
 {
     $siteAccessArray = array( $ini->variable( 'SiteSettings', 'DefaultAccess' ) );
 }
+// var_dump($siteAccessArray);die();
 
 /**
  * BC: Array to store all siteacces related information
@@ -213,7 +191,6 @@ foreach ( $siteaccesses as $siteaccess )
     /**
      * BC: Alert user of the generation of the sitemap for the current language siteacces (name)
      */
-     var_dump($quiet);
     if ( !$quiet )
         $cli->output( "Generating static cache for siteaccess " . $siteaccess["siteaccess"] . " \n" );
 
@@ -241,11 +218,6 @@ foreach ( $siteaccesses as $siteaccess )
     }
 
     /**
-     * Change siteaccess
-     */
-    eZSiteAccess::change( array("name" => $siteaccess["siteaccess"], "type" => eZSiteAccess::TYPE_URI ) );
-
-    /**
      * Fetch the content tree nodes (children) of the above root node (in a given locale)
      */
     $nodeArray = $rootNode->subTree( array( 'Language' => $siteaccess['siteaccessLanguages'],
@@ -253,7 +225,7 @@ foreach ( $siteaccesses as $siteaccess )
                                             'ClassFilterArray' => $classFilterArray ) );
     $resultsArray = array_merge( array( $rootNode ), $nodeArray );
 
-    //echo count($nodeArray); die();
+    // echo count($nodeArray); die();
 
     /**
      * BC: Generate Static Cache For Nearly Every Content Object
@@ -266,13 +238,13 @@ foreach ( $siteaccesses as $siteaccess )
          * BC: Site node url alias (calculation)
          */
         $urlAlias = $sitemapLinkProtocol . '://' . $siteURL . $subTreeNode->attribute( 'url_alias' );
-        print_r($urlAlias);echo "\n";
 
         /**
          * BC: node_id exclusion (calculation)
          */
         $nodeID = $subTreeNode->attribute( 'node_id' );
         $nodeIDPath = $subTreeNode->attribute( 'path_string' );
+	// var_dump($excludeNodeIDs);
 
         /**
          * BC: Test for exclude nodes
@@ -281,6 +253,11 @@ foreach ( $siteaccesses as $siteaccess )
          {
              $cli->output("Excluding: $nodeID\n");
              continue;
+         }
+	 else
+	 {
+	     $cli->output("Static Cache Request: $urlAlias");
+             $cli->output();
          }
 
         /**
