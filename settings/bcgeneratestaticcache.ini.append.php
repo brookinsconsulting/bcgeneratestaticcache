@@ -27,11 +27,11 @@
 
 # Specify object classes to include or exclude from sitemap
 # ClassFilterArray[]
-#ClassFilterArray[]=folder
-#ClassFilterArray[]=article
-#ClassFilterArray[]=image
-#ClassFilterArray[]=forum
-#ClassFilterArray[]=...
+# ClassFilterArray[]=folder
+# ClassFilterArray[]=article
+# ClassFilterArray[]=image
+# ClassFilterArray[]=forum
+# ClassFilterArray[]=...
 
 # [NodeSettings]
 # Set this setting to false to include only main node of content objects in sitemap
