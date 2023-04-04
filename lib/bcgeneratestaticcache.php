@@ -458,10 +458,11 @@ function searchForId($id, $array) {
         {
             $dirs[] = $this->buildCacheDirPath( $cachedSiteAccess );
         }
+        unset($dirs[0][1]);
 
-//        print_r($this->cachedSiteAccesses);
-//        print_r( $dirs );
-
+// print_r($this->cachedSiteAccesses);
+// print_r( $dirs );
+// die();
         foreach ( $dirs as $dirParts )
         {
             foreach ( $dirParts as $dirPart )
